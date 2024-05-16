@@ -1,0 +1,92 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:16.3
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: metrics_api_development
+      POSTGRES_USER: username
+      POSTGRES_PASSWORD: password
+    volumes:
+      - psql-data:/var/lib/postgresql/data
+
+  opensearch:
+    image: opensearchproject/opensearch:2.6.0
+    container_name: opensearch
+    environment:
+      - cluster.name=opensearch
+      - node.name=opensearch
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "DISABLE_INSTALL_DEMO_CONFIG=true"
+      - "DISABLE_SECURITY_PLUGIN=true"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+    ports:
+      - 9200:9200
+      - 9600:9600
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+
+  web:
+    build:
+      context: .
+    volumes:
+        - .:/web:cached
+    working_dir: /web
+    image: metrics_rails_app
+    ports:
+      - "3000:3000"
+    tty: true
+    stdin_open: true
+    environment:
+      DB_USERNAME: username
+      DB_PASSWORD: password
+      DB_HOST: postgres
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      OPENSEARCH_URL: http://opensearch:9200
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - postgres
+      - redis
+      - opensearch
+
+  worker_sidekiq:
+    image: metrics_rails_app
+    build:
+      context: .
+    volumes:
+      - .:/web:cached
+    working_dir: /web
+    command: [ "bundle", "exec", "sidekiq" ]
+    environment:
+      DB_USERNAME: username
+      DB_PASSWORD: password
+      DB_HOST: postgres
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      OPENSEARCH_URL: http://opensearch:9200
+      REDIS_URL: redis://redis:6379
+
+  ui:
+    image: metrics_react_app
+    build:
+      context: ../metrics-spa
+    ports:
+      - "3001:3000"
+
+volumes:
+  psql-data:
+  opensearch_data:

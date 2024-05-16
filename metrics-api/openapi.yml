@@ -1,0 +1,291 @@
+openapi: 3.0.0
+info:
+  title: Application metrics
+  version: 1.0.0
+paths:
+  /api/v1/applications:
+    post:
+      summary: Create a new application
+      description: Endpoint to create a new application.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                application:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      description: Name of the application.
+              required:
+                - name
+      responses:
+        '201':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: ID of the created application.
+                  name:
+                    type: string
+                    description: Name of the created application.
+                  created_at:
+                    type: string
+                    format: date-time
+                    description: Timestamp when the application was created.
+                  updated_at:
+                    type: string
+                    format: date-time
+                    description: Timestamp when the application was last updated.
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid request payload.
+    get:
+      summary: Get a list of applications
+      description: Retrieve a list of applications.
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  records:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: ID of the application.
+                        name:
+                          type: string
+                          description: Name of the application.
+                        created_at:
+                          type: string
+                          format: date-time
+                          description: Timestamp when the application was created.
+                        updated_at:
+                          type: string
+                          format: date-time
+                          description: Timestamp when the application was last updated.
+                  meta:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                        description: Current page number.
+                      items:
+                        type: integer
+                        description: Number of items in the current page.
+                      count:
+                        type: string
+                        description: Total count of applications.
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: Page number for pagination.
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+          description: Number of applications per page for pagination.
+  /api/v1/applications/{app_id}:
+    get:
+      summary: Get an application by ID
+      description: Retrieve an application by its ID.
+      parameters:
+        - in: path
+          name: app_id
+          required: true
+          schema:
+            type: string
+          description: ID of the application to retrieve.
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: ID of the application.
+                  name:
+                    type: string
+                    description: Name of the application.
+                  created_at:
+                    type: string
+                    format: date-time
+                    description: Timestamp when the application was created.
+                  updated_at:
+                    type: string
+                    format: date-time
+                    description: Timestamp when the application was last updated.
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Application not found.
+  /api/v1/applications/{app_id}/metrics:
+    post:
+      summary: Add metrics for an application
+      description: Endpoint to add metrics for a specific application.
+      parameters:
+        - in: path
+          name: app_id
+          required: true
+          schema:
+            type: string
+          description: ID of the application to which metrics are being added.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                metrics:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: Name of the metric.
+                      value:
+                        type: number
+                        description: Value of the metric.
+                      timestamp:
+                        type: integer
+                        format: int64
+                        description: Unix timestamp of when the metric was recorded.
+              example:
+                metrics:
+                  - name: metric1
+                    value: 10
+                    timestamp: 1111
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Metric(s) added successfully.
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid request payload.
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Application not found.
+  /api/v1/applications/{app_id}/metrics/{metric_name}:
+    get:
+      summary: Get metrics for a specific metric of an application
+      description: Retrieve metrics for a specific metric of an application.
+      parameters:
+        - in: path
+          name: app_id
+          required: true
+          schema:
+            type: string
+          description: ID of the application.
+        - in: path
+          name: metric_name
+          required: true
+          schema:
+            type: string
+          description: Name of the metric.
+        - in: query
+          name: duration
+          schema:
+            type: string
+            enum: [hour, day, week, month, quarter, year]
+            default: hour
+          description: |
+            Duration for which the metrics should be aggregated. Available options are hour, day, week, month, quarter, year. Defaulted to 'hour'.
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    date:
+                      type: string
+                      format: date-time
+                      example: '2024-05-06T00:00:00.000Z'
+                      description: Date of the metric.
+                    count:
+                      type: integer
+                      example: 3
+                      description: Count of the metric.
+                    p99:
+                      type: number
+                      example: 30.0
+                      description: 99th percentile of the metric.
+                    p95:
+                      type: number
+                      example: 30.0
+                      description: 95th percentile of the metric.
+                    p50:
+                      type: number
+                      example: 5.0
+                      description: 50th percentile of the metric.
+                    avg:
+                      type: number
+                      example: 12.666666666666666
+                      description: Average value of the metric.
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Application or metric not found.

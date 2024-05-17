@@ -48,6 +48,7 @@ The repo has 3 folders:
 - `metrics-api`. A rails 7 app that has all the backend logic
 - `metrics-spa`. A singe page app written in react.
 - `metrics-api-clients`. Auto generated clients derived form the openapi specs defined by the rails app. Check the folder readme for more info
+- `metrics-api-infra`. For fun, I added terraform files to spin up an ec2 machine. Check the folder readme for more instructions.
 
 In order to start the backend and the frontend, in the `metrics-api` run;
 ```

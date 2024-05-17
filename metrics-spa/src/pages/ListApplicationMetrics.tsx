@@ -1,70 +1,71 @@
-import React, { useState, useEffect } from 'react';
-import { createApplicationMetricDataPoint, listApplicatioMetrics, Metric } from '../api';
-import { Link, useParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react'
+import { createApplicationMetricDataPoint, listApplicatioMetrics, type Metric } from '../api'
+import { Link, useParams, useLocation } from 'react-router-dom'
 
 const ListApplicationMetrics: React.FC = () => {
   const { id } = useParams<{ id: string }>()
-  const [data, setData] = useState<Metric[] | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null);
+  const { state } = useLocation()
+  const [data, setData] = useState<Metric[] | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [error, setError] = useState(null)
+  const [successMessage, setSuccessMessage] = useState(null)
   const [formData, setFormData] = useState({
     metricName: '',
     timestamp: '',
     value: ''
-  });
+  })
 
   const openModal = () => {
-    setIsModalOpen(true);
-  };
+    setIsModalOpen(true)
+  }
 
   const closeModal = () => {
-    setIsModalOpen(false);
-    setError(null);
-    setSuccessMessage(null);
-  };
+    setIsModalOpen(false)
+    setError(null)
+    setSuccessMessage(null)
+  }
 
   const handleChange = (e: any) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
+    const { name, value } = e.target
+    setFormData({ ...formData, [name]: value })
+  }
 
   const handleSubmit = async (e: any) => {
-    e.preventDefault();
+    e.preventDefault()
     try {
-      await createApplicationMetricDataPoint(id, formData);
-      setIsModalOpen(false);
+      await createApplicationMetricDataPoint(id, formData)
+      setIsModalOpen(false)
       setFormData({
         metricName: '',
         timestamp: '',
         value: ''
       })
-      setSuccessMessage('Metric data point created successfully.');
+      setSuccessMessage('Metric data point created successfully.')
       setTimeout(async () => {
-        const result = await listApplicatioMetrics(id);
-        setData(result);
-      }, 3000);
+        const result = await listApplicatioMetrics(id)
+        setData(result)
+      }, 3000)
       setTimeout(() => {
-        setSuccessMessage(null);
-      }, 10000);
+        setSuccessMessage(null)
+      }, 10000)
     } catch (error: any) {
-      console.error('Error creating metric:', error);
-      setError(error.response?.data?.message);
+      console.error('Error creating metric:', error)
+      setError(error.response?.data?.message)
     }
-  };
+  }
 
   useEffect(() => {
     const fetchDataFromApi = async () => {
       try {
-        const result = await listApplicatioMetrics(id);
-        setData(result);
+        const result = await listApplicatioMetrics(id)
+        setData(result)
       } catch (error) {
-        console.error(error);
+        console.error(error)
       }
-    };
+    }
 
-    fetchDataFromApi();
-  }, []);
+    fetchDataFromApi()
+  }, [])
 
   return (
     <div className="container mx-auto mt-8">
@@ -126,7 +127,7 @@ const ListApplicationMetrics: React.FC = () => {
           </div>
         </div>
       )}
-      <h1 className="text-2xl font-bold mb-4">Available metrics stats</h1>
+      <h1 className="text-2xl font-bold mb-4">{state.applicationName}</h1>
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
@@ -138,8 +139,9 @@ const ListApplicationMetrics: React.FC = () => {
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {data ? (
-            data.map((item, index) => (
+          {data
+            ? (
+                data.map((item, index) => (
               <tr key={index} className="hover:bg-gray-100 cursor-pointer">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <Link to={`/applications/${id}/metrics/${item.metric_name}`} className="text-blue-500 hover:underline block">
@@ -151,16 +153,17 @@ const ListApplicationMetrics: React.FC = () => {
                 <td className="px-6 py-4 whitespace-nowrap">{item.p50}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{item.avg}</td>
               </tr>
-            ))
-          ) : (
+                ))
+              )
+            : (
             <tr>
               <td colSpan={3} className="px-6 py-4 text-center">Loading...</td>
             </tr>
-          )}
+              )}
         </tbody>
       </table>
     </div>
-  );
-};
+  )
+}
 
-export default ListApplicationMetrics;
+export default ListApplicationMetrics

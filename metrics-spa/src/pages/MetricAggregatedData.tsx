@@ -67,6 +67,7 @@ const MetricAggregatedDataComponent = () => {
 
   return (
     <div>
+      <h1 className="text-2xl font-bold mb-4">{metricName}</h1>
       <select value={duration} onChange={(e) => handleDurationChange(e.target.value)}>
         <option value="hour">Hour</option>
         <option value="day">Day</option>

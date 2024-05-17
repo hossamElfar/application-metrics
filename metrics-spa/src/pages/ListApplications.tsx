@@ -135,7 +135,7 @@ const ListApplications: React.FC = () => {
             data.records.map((item, index) => (
               <tr key={index} className="hover:bg-gray-100 cursor-pointer">
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <Link to={`/applications/${item.id}`} className="text-blue-500 hover:underline block">
+                  <Link to={`/applications/${item.id}`} state={{applicationName: item.name}} className="text-blue-500 hover:underline block">
                     {item.name}
                   </Link>
                 </td>
